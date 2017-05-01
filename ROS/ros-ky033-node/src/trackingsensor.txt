@@ -2,42 +2,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ros/ros.h>
-#include <ky_033/hunt_sensor.h> //change to hunt msg
+#include <sensor_msgs/Range.h> //change to hunt msg
 #include <wiringPi.h>
 
 using namespace std;
 
 namespace ky_033_node {
-//V0.1
 
- class Hunt {
-  public:
-   Hunt(int s) : signal_(s) {
-     pinMode(signal_, INPUT);
-     delay(1000);
-     }
-     float value() {
-      float sensorValue;
-      if(digitalRead(signal_) == HIGH) {
-        sensorValue = 0;
-        }
-      if(digitalRead(signal_) == LOW) {
-        sensorValue = 1;
-        }
-    return sensorValue;
-    }
+const static float sensorValue= 0;
 
-
- private:
-  int signal_;
- }; 
+class Hunt {
+ public:
+  Hunt(int s) : signal_(s) {
+    pinMode(signal_, OUTPUT);
+    delay(1000);
 }
 
 int main(int argc, char **argv) {
 
   // Start ROS node.
   ROS_INFO("Starting node");
-  ros::init(argc, argv, "ky_033s");
+  ros::init(argc, argv, "ky_033");
   ros::NodeHandle node;
   ros::Rate rate(10);  // 10 hz
 
@@ -53,24 +38,23 @@ int main(int argc, char **argv) {
   for (int i = 0; i < hunts.size(); ++i) {
     stringstream ss;
     ss << "hunt_" << i;
-    hunt_pubs.push_back(node.advertise<ky_033::hunt_sensor>(ss.str(), 10)); //replace sensor_msgs::Range for costum msg
+    hunt_pubs.push_back(node.advertise<sensor_msgs::Range>(ss.str(), 10)); //replace sensor_msgs::Range for costum msg
   }
   
   // Build base range message that will be used for
   // each time a msg is published.
-  ky_033::hunt_sensor hunt; //replace for Hunt
-  hunt.sensor_id = "ky_033";
-
-float value;
-  while(ros::ok()) {
+  sensor_msgs::Range range; //replace for Hunt
+  range.max_range = hc_sr04_node::MAX_DISTANCE; //replace for Hunt
+ 
+  float distance;
+  bool error;
+  while(ros::ok()) {    
     for (int i = 0; i < hunts.size(); ++i) {
-      hunt.header.stamp = ros::Time::now();
-      hunt.sensorValue = hunts[i].value();
-      hunt_pubs[i].publish(hunt);
+      range.header.stamp = ros::Time::now(); //header Hunt
+      hunt_pubs[i].publish(range);
     }
     ros::spinOnce();
     rate.sleep();    
   }
   return 0;
 }
-
