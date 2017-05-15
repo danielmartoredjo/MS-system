@@ -95,7 +95,7 @@ enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
         } else {
             next_timer_state = state_axis_pwm;
         }
-        // printk(KERN_INFO "%u %u\n", motor_uptime_us, axis_uptime_us);
+        printk(KERN_INFO "%u %u\n", motor_uptime_us, axis_uptime_us);
         gpio_set_value(PWM_MOTOR_GPIO, 1);
         gpio_set_value(PWM_AXIS_GPIO, 1);
         timer_state = next_timer_state;
@@ -127,17 +127,17 @@ enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
     }
     else if (timer_state == state_axis_pwm)
     {
-        // printk(KERN_ALERT "Debug\n");
+        printk(KERN_ALERT "Debug\n");
         ktime0 = ktime_set( 0, (axis_uptime_us * 1000L) );  
         next_timer_state = state_rem_motor_pwm;
-        // printk(KERN_ALERT "Debug After\n");
+        printk(KERN_ALERT "Debug After\n");
     }
     else if (timer_state == state_rem_motor_pwm)
     {
         ktime0 = ktime_set( 0, (motor_uptime_us - axis_uptime_us) * 1000L );
         gpio_set_value(PWM_AXIS_GPIO, 0); 
         next_timer_state = state_rem_down_time;
-        // printk(KERN_INFO "rem_ns: %d\n", (motor_uptime_us - axis_uptime_us) * 1000L);
+        printk(KERN_INFO "rem_ns: %d\n", (motor_uptime_us - axis_uptime_us) * 1000L);
     }
     else if (timer_state == state_rem_axis_pwm)
     {
@@ -157,7 +157,7 @@ enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
             // ktime0 = ktime_set( 0, (SYNC_PWM_NS - (motor_uptime_us * 1000) * 1L) );    
         }
         ktime0 = ktime_set( 0, (x * 1L) );    
-        // printk(KERN_INFO "downtime_ns: %d\n", x);
+        printk(KERN_INFO "downtime_ns: %d\n", x);
         gpio_set_value(PWM_MOTOR_GPIO, 0);
         gpio_set_value(PWM_AXIS_GPIO, 0);
         next_timer_state = state_idle;
@@ -172,9 +172,9 @@ enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
     }
     
     hrtimer_start( &hr_timer0, ktime0, HRTIMER_MODE_REL );
-    // printk(KERN_INFO "State: %d\n", timer_state);
+    printk(KERN_INFO "State: %d\n", timer_state);
     timer_state = next_timer_state;
-    // printk(KERN_INFO "Next State: %d\n", timer_state);
+    printk(KERN_INFO "Next State: %d\n", timer_state);
     // ktime1 = ktime_set( 0, US_TO_NS(motor_uptime_us) );
     // ktime2 = ktime_set( 0, US_TO_NS(axis_uptime_us) );
     // hrtimer_start( &hr_timer1, ktime1, HRTIMER_MODE_REL );
