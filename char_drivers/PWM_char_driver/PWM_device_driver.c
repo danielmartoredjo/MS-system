@@ -31,12 +31,9 @@ MODULE_LICENSE("GPL");
 #define SYNC_LOW_NS     (SYNC_PWM_NS - SYNC_HIGH_NS)
 #define PWM_MOTOR_DEFAULT_VALUE 1520
 #define PWM_AXIS_DEFAULT_VALUE  1380
- 
-// static unsigned long count = 0;
 
-static struct hrtimer hr_timer0;    // 60 Hertz resonance timer
-// static struct hrtimer hr_timer1;    // uptime Motor PWM
-// static struct hrtimer hr_timer2;    // uptime Axis PWM
+static struct hrtimer hr_timer0;    // PWM timer
+
 static unsigned int motor_uptime_us, axis_uptime_us; // uptime value of the pwm's in microseconds
 static unsigned int new_motor_uptime_us, new_axis_uptime_us; // uptime value of the pwm's in microseconds
 static int sync_counter = 0;
@@ -57,7 +54,6 @@ enum timer_states timer_state, next_timer_state;
  
 enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
 {
-    // set the gpio's high and start all three timers (0-2)
     ktime_t ktime0;
     timer_state = next_timer_state;
      
@@ -139,10 +135,8 @@ enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
         if (motor_uptime_us < axis_uptime_us)
         {
             x = SYNC_PWM_NS - (axis_uptime_us * 1000);
-            // ktime0 = ktime_set( 0, (SYNC_PWM_NS - (axis_uptime_us * 1000) * 1L) );    
         } else {
             x = SYNC_PWM_NS - (motor_uptime_us * 1000);
-            // ktime0 = ktime_set( 0, (SYNC_PWM_NS - (motor_uptime_us * 1000) * 1L) );    
         }
         ktime0 = ktime_set( 0, (x * 1L) );    
         // printk(KERN_INFO "downtime_ns: %d\n", x);
@@ -160,33 +154,9 @@ enum hrtimer_restart hr_timer0_callback( struct hrtimer *timer )
     }
     
     hrtimer_start( &hr_timer0, ktime0, HRTIMER_MODE_REL );
-    // printk(KERN_INFO "State: %d\n", timer_state);
-    // timer_state = next_timer_state;
-    // printk(KERN_INFO "Next State: %d\n", timer_state);
-    // ktime1 = ktime_set( 0, US_TO_NS(motor_uptime_us) );
-    // ktime2 = ktime_set( 0, US_TO_NS(axis_uptime_us) );
-    // hrtimer_start( &hr_timer1, ktime1, HRTIMER_MODE_REL );
-    // hrtimer_start( &hr_timer2, ktime2, HRTIMER_MODE_REL );
-
 
     return HRTIMER_RESTART;
 }
-
-// enum hrtimer_restart hr_timer1_callback( struct hrtimer *timer )
-// {
-//     // set gpio low and stop running. timer 0 will start this timer again
-//     gpio_set_value(PWM_MOTOR_GPIO, 0);
-
-//     return HRTIMER_NORESTART;
-// }
-
-// enum hrtimer_restart hr_timer2_callback( struct hrtimer *timer )
-// {
-//     // set gpio low and stop running. timer 0 will start this timer again
-//     gpio_set_value(PWM_AXIS_GPIO, 0);
-
-//     return HRTIMER_NORESTART;
-// }
 
 int init_pwm_gpio(void);
 void uninit_pwm_gpio(void);
@@ -310,8 +280,6 @@ void uninit_pwm_gpio(void)
 int init_pwm_timers(void)
 {
     ktime_t ktime0;
-    // ktime_t ktime1;
-    // ktime_t ktime2;
     motor_uptime_us = 1520;     // micros
     axis_uptime_us  = 1380;     // micros
     new_motor_uptime_us = motor_uptime_us;
@@ -330,8 +298,6 @@ int init_pwm_timers(void)
     next_timer_state = timer_state;
 
     printk( "Starting timer to fire in %ldms (%ld)\n", delay_in_ms, jiffies );
-
-    // timer_state = state_sync;
 
     hrtimer_start( &hr_timer0, ktime0, HRTIMER_MODE_REL );
 
@@ -395,16 +361,6 @@ static ssize_t cdd_read(struct file *filp,   /* see include/linux/fs.h   */
     {
         msg[i] = buffer_to_send[i];
     }
-    // if (gpio_select == 'D')
-    // {
-    //     // msg[0] = gpio_get_value(S1_GPIO) + '0';
-    //     // msg[1] = '\n';   // new line
-    // }
-    // else
-    // {
-    //     msg[0] = '\0';  // empty
-    //     // msg[1] = '\0';  // empty
-    // }
 
     /*
      * If we're at the end of the message, 
