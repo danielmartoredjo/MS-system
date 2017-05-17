@@ -9,6 +9,8 @@ echo "5" > /sys/class/gpio/export
 echo "in" > /sys/class/gpio/gpio5/direction
 
 # Set up GPIO 6 input
-echo "6" > /sys/class/gpio/export
-echo "in" > /sys/class/gpio/gpio6/direction
+echo "17" > /sys/class/gpio/export
+echo "out" > /sys/class/gpio/gpio17/direction
 
+echo "18" > /sys/class/gpio/export
+echo "out" > /sys/class/gpio/gpio18/direction

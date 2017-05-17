@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>ky_033</name>
+  <name>motor_drive</name>
   <version>0.0.1</version>
-  <description>The ky_033 package</description>
+  <description>The motor_drive package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
