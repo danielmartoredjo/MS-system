@@ -103,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   CATKIN_DEPENDS message_runtime
 #  INCLUDE_DIRS include
-  LIBRARIES hc_sr04
+#  LIBRARIES hc_sr04
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
 )
@@ -127,7 +127,7 @@ include_directories(
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-## add_dependencies(hc_sr04 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(hc_sr04 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 add_executable(hc_sr04_node src/hc_sr04_node.cpp)
