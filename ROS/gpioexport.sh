@@ -10,14 +10,15 @@
 
 #PWM_motor
 # Set up GPIO 19 and set to output
-echo "19" > /sys/class/gpio/export
-echo "out" > /sys/class/gpio/gpio19/direction
+#echo "19" > /sys/class/gpio/export
+#echo "out" > /sys/class/gpio/gpio19/direction
+# The driver does it manually
 
 #PWM_axis
 # Set up GPIO 26 and set to output
-echo "26" > /sys/class/gpio/export
-echo "out" > /sys/class/gpio/gpio26/direction
-
+#echo "26" > /sys/class/gpio/export
+#echo "out" > /sys/class/gpio/gpio26/direction
+# The driver does it manully
 
 
 #GPIO for ky-033
