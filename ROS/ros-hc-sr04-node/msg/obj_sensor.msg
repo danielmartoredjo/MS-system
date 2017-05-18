@@ -20,3 +20,4 @@ float32 range           # range data [m]
                         # (Detection too close to the sensor to quantify)
                         # +Inf represents no detection within the fixed distance.
                         # (Object out of range)
+float32 hc_distance_send

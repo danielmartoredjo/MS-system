@@ -1,0 +1,85 @@
+#include <vector>
+#include <std_msgs/Float32.h>
+#include <stdio.h>
+//#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <ros/ros.h>
+#include <controlmotor/control_sensor.h> //change to hunt msg
+#include <wiringPi.h>
+
+using namespace std;
+
+namespace controlmotor_node {
+//V0.1
+
+ class Control {
+  public:
+   Control(int d) : signal_(d) {
+     pinMode(signal_, INPUT);
+     }
+ private:
+  int signal_;
+  int x;
+ }; 
+}
+
+float a = 20;
+float npw = 1520;
+float pwm(void)
+{
+  if(npw <= 1100)
+  {
+  
+
+  a = 20;
+  }
+  else if(npw >= 2000)
+  {
+  
+
+  a = -20;
+  } 
+ npw += a;
+ return npw;
+}
+
+
+void hc_sr04Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range  = msg->data;
+}
+
+
+
+int main(int argc, char **argv) {
+  // Start ROS node.
+  ROS_INFO("Starting node");
+  ros::init(argc, argv, "controlmotor");
+  ros::NodeHandle node;
+  ros::Rate rate(10);  // 10 hz
+  
+
+  // Build N motor_drive.
+  wiringPiSetupSys();  // uses gpio pin numbering
+  vector<controlmotor_node::Control> controlmotors;
+  controlmotors.push_back(controlmotor_node::Control(18));
+
+  // Build a publisher for each Hunt sensor.
+  ros::Publisher drive_pubs = node.advertise<std_msgs::Float32>("motor_speed", 100);
+
+
+  ros::Subscriber sub = node.subscribe("hc_sr04_range", 1000, hc_sr04Cb);
+
+
+  std_msgs::Float32 npw_send;
+  while(ros::ok()) {
+    pwm();
+    npw_send.data = npw;
+    printf("%f", hc_range);
+    drive_pubs.publish(npw_send);
+    ros::spinOnce();
+    rate.sleep();    
+  }
+  return 0;
+}
+

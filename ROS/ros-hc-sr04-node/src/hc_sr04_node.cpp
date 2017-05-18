@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ros/ros.h>
+#include <unistd.h>
+#include <std_msgs/Float32.h>
 #include <hc_sr04/obj_sensor.h>
 #include <wiringPi.h>
 
@@ -11,7 +13,7 @@ namespace hc_sr04_node {
 
 // Maximum distance reported. Values over this distance
 // report MAX_DISTANCE. TODO make this a property.
-const static float MAX_DISTANCE = 30;
+const static float MAX_DISTANCE = 60;
 const static float DIST_SCALE = 58.0;
 const static float TRAVEL_TIME_MAX = MAX_DISTANCE * DIST_SCALE;
 
@@ -53,7 +55,7 @@ class Sonar {
 	travelTime = TRAVEL_TIME_MAX;
 	break;
       }
-      delayMicroseconds(100);
+      delayMicroseconds(10);
     }
     
     // Return distance in cm
@@ -92,6 +94,8 @@ int main(int argc, char **argv) {
     sonar_pubs.push_back(node.advertise<hc_sr04::obj_sensor>(ss.str(), 10));
   }
   
+    ros::Publisher sonic_pubs = node.advertise<std_msgs::Float32>("hc_sr04_range", 100);
+  
   // Build base range message that will be used for
   // each time a msg is published.
   hc_sr04::obj_sensor range;
@@ -101,17 +105,21 @@ int main(int argc, char **argv) {
  
   float distance;
   bool error;
+  std_msgs::Float32 hc_distance_send;
   while(ros::ok()) {    
     for (int i = 0; i < sonars.size(); ++i) {
       range.header.stamp = ros::Time::now();
       range.range = sonars[i].distance(&error);
       if (error)
-	ROS_WARN("Error on sonar %d", i);
+	    ROS_WARN("Error on sonar %d", i);
       else
-	sonar_pubs[i].publish(range);
+    hc_distance_send.data = sonars[1].distance(&error);;
+    sonic_pubs.publish(hc_distance_send);
+	  sonar_pubs[i].publish(range);
     }
     ros::spinOnce();
     rate.sleep();    
   }
   return 0;
 }
+
