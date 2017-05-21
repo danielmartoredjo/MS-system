@@ -1,1 +1,0 @@
-cmd_/home/pi/git/MS-system/char_drivers/PWM_char_driver/PWM_device_driver.ko := ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/pi/git/MS-system/char_drivers/PWM_char_driver/PWM_device_driver.ko /home/pi/git/MS-system/char_drivers/PWM_char_driver/PWM_device_driver.o /home/pi/git/MS-system/char_drivers/PWM_char_driver/PWM_device_driver.mod.o
