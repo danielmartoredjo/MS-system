@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
   ROS_INFO("Starting node");
   ros::init(argc, argv, "hc_sr04s");
   ros::NodeHandle node;
-  ros::Rate rate(10);  // 10 hz
+  ros::Rate rate(60);  // 10 hz
 
   // Build N sonars.
   wiringPiSetupSys();  // uses gpio pin numbering
@@ -101,7 +101,9 @@ int main(int argc, char **argv) {
     sonar_pubs.push_back(node.advertise<hc_sr04::obj_sensor>(ss.str(), 10));
   }
   
-    ros::Publisher sonic_pubs = node.advertise<std_msgs::Float32>("hc_sr04_range", 100);
+    ros::Publisher sonic_0_pubs = node.advertise<std_msgs::Float32>("hc_sr04_range_0", 10);
+    ros::Publisher sonic_1_pubs = node.advertise<std_msgs::Float32>("hc_sr04_range_1", 10);
+    ros::Publisher sonic_2_pubs = node.advertise<std_msgs::Float32>("hc_sr04_range_2", 10);
   
   // Build base range message that will be used for
   // each time a msg is published.
@@ -112,16 +114,24 @@ int main(int argc, char **argv) {
  
   float distance;
   bool error;
-  std_msgs::Float32 hc_distance_send;
+  std_msgs::Float32 hc_distance_send_0;
+  std_msgs::Float32 hc_distance_send_1;
+  std_msgs::Float32 hc_distance_send_2;
   while(ros::ok()) {    
     for (int i = 0; i < sonars.size(); ++i) {
       range.header.stamp = ros::Time::now();
       range.range = sonars[i].distance(&error);
+      if (i == 0){hc_distance_send_0.data = range.range;
+          sonic_0_pubs.publish(hc_distance_send_0);}
+      if (i == 1){hc_distance_send_1.data = range.range;
+          sonic_1_pubs.publish(hc_distance_send_1);}
+      if (i == 2){hc_distance_send_2.data = range.range;
+          sonic_2_pubs.publish(hc_distance_send_2);}
       if (error)
 	    ROS_WARN("Error on sonar %d", i);
       else
-    hc_distance_send.data = sonars[1].distance(&error);;
-    sonic_pubs.publish(hc_distance_send);
+    //hc_distance_send.data = sonars[1].distance(&error);;
+    //sonic_pubs.publish(hc_distance_send);
 	  sonar_pubs[i].publish(range);
     }
     ros::spinOnce();
