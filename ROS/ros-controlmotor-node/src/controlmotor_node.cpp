@@ -10,7 +10,9 @@
 
 using namespace std;
 
-float hc_range;
+float hc_range_0;
+float hc_range_1;
+float hc_range_2;
 
 namespace controlmotor_node {
 //V0.2
@@ -35,32 +37,22 @@ float pwm(void)
 {
     gem = twee;
     twee = een;
-    een = hc_range;
+    een = hc_range_1;
     gem = een + twee + gem;
     gem = gem / 3;
 
-    if(gem <= 7.0)
+    if(gem <= 10.0)
     {
         npwM = 1520;
         kickstart = 0;
     }
     else if(gem > 13.0 && gem <= 28.0)
       {
-        npwM = 1610;
-        /*if(kickstart <= 6)
-        {
-          kickstart++;
-          npwM = 1610;
-        }
-        else if(kickstart > 6)
-        {
-          npwM = 1590;
-        }
-        */
+        npwM = 1600;
   }
   else if(gem > 28 && gem < 45.0 )
   {
-      npwM = 1625;
+      npwM = 1610;
   } 
   else if(gem >= 52.0)
   {
@@ -69,9 +61,38 @@ float pwm(void)
  return 0;
 }
 
+static int step = 5;
+float axis(void)
+{
+  if(hc_range_0 == 60.0 && hc_range_1 <= 60.0 && hc_range_2 < 60.0)
+  {
+   npwA = npwA + step;
+   if (npwA >= 1560){
+    npwA = 1560;
+   }
+  }
+  else if(hc_range_0 < 60.0 && hc_range_1 <= 60.0 && hc_range_2 == 60.0)
+  {
+   npwA = npwA - step;
+   if (npwA <= 1180){
+    npwA = 1180;
+   }
+  }
+  else{
+    npwA = 1380;
+  }
+}
 
-void hc_sr04Cb(const std_msgs::Float32::ConstPtr& msg){
-hc_range  = msg->data;
+void hc_sr04_0Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range_0  = msg->data;
+}
+
+void hc_sr04_1Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range_1  = msg->data;
+}
+
+void hc_sr04_2Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range_2  = msg->data;
 }
 
 
@@ -81,7 +102,7 @@ int main(int argc, char **argv) {
   ROS_INFO("Starting node");
   ros::init(argc, argv, "controlmotor");
   ros::NodeHandle node;
-  ros::Rate rate(10);  // 10 hz
+  ros::Rate rate(60);  // 10 hz
   
 
   // Build N motor_drive.
@@ -94,13 +115,16 @@ int main(int argc, char **argv) {
   ros::Publisher axis_pubs = node.advertise<std_msgs::Float32>("motor_axis", 100);
 
 
-  ros::Subscriber sub = node.subscribe("hc_sr04_range", 1000, hc_sr04Cb);
+  ros::Subscriber sub_0 = node.subscribe("hc_sr04_range_0", 10, hc_sr04_0Cb);
+  ros::Subscriber sub_1 = node.subscribe("hc_sr04_range_1", 10, hc_sr04_1Cb);
+  ros::Subscriber sub_2 = node.subscribe("hc_sr04_range_2", 10, hc_sr04_2Cb);
 
 
   std_msgs::Float32 npwA_send;
   std_msgs::Float32 npwM_send;
   while(ros::ok()) {
     pwm();
+    axis();
     npwA_send.data = npwA;
     npwM_send.data = npwM;
     axis_pubs.publish(npwA_send);
