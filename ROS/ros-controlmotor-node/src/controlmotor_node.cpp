@@ -29,6 +29,7 @@ namespace controlmotor_node {
 
 float npwM = 1520;
 float npwA = 1380;
+static int state = 0;
 static int kickstart = 0;
 static int een = 0;
 static int twee = 0;
@@ -40,42 +41,58 @@ float pwm(void)
     een = hc_range_1;
     gem = een + twee + gem;
     gem = gem / 3;
-
-    if(gem <= 10.0)
-    {
-        npwM = 1520;
-        kickstart = 0;
-    }
-    else if(gem > 13.0 && gem <= 28.0)
-      {
-        npwM = 1600;
-  }
-  else if(gem > 28 && gem < 45.0 )
-  {
-      npwM = 1610;
-  } 
-  else if(gem >= 52.0)
-  {
-      npwM = 1520;
-  }
- return 0;
+if (gem <= 10 && state == 0)
+{
+  npwM = 1520;
+}
+else if(gem <= 10.0 && state == 1)
+{
+    npwM = 1420;
+}
+else if(gem > 13.0 && gem <= 28.0)
+{
+  npwM = 1600;
+  state = 1;
+}
+else if(gem > 28 && gem < 45.0 )
+{
+    npwM = 1610;
+    state = 1;
+} 
+else if(gem >= 52.0)
+{
+    npwM = 1520;
+}
+return 0;
 }
 
-static int step = 5;
+
+/*
+us   | angle
+-----------
+1000 |  -20
+1100 |  -15
+1180 |  -10
+1380 |  0
+1560 |  10
+1660 |  15
+
+*/
+static int step = 40;
 float axis(void)
 {
   if(hc_range_0 == 60.0 && hc_range_1 <= 60.0 && hc_range_2 < 60.0)
   {
    npwA = npwA + step;
-   if (npwA >= 1560){
-    npwA = 1560;
+   if (npwA >= 1660){
+    npwA = 1660;
    }
   }
   else if(hc_range_0 < 60.0 && hc_range_1 <= 60.0 && hc_range_2 == 60.0)
   {
    npwA = npwA - step;
-   if (npwA <= 1180){
-    npwA = 1180;
+   if (npwA <= 1100){
+    npwA = 1100;
    }
   }
   else{
