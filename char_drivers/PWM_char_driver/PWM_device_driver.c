@@ -16,9 +16,9 @@ MODULE_LICENSE("GPL");
 #define BUF_LEN 256 //max length oof msg
 
 #define PWM_MOTOR_LABEL "GPIO18_PWM_MOTOR"
-#define PWM_MOTOR_GPIO 18
+#define PWM_MOTOR_GPIO 19
 #define PWM_AXIS_LABEL "GPIO17_PWM_AXIS"
-#define PWM_AXIS_GPIO 17
+#define PWM_AXIS_GPIO 26
 
 #define DEVICE_CLASS_NAME "pwm_cl"
 #define DEVICE_DRIVER_NAME "pwm_drv"

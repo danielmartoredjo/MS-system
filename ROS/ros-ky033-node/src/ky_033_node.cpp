@@ -5,6 +5,9 @@
 #include <ky_033/hunt_sensor.h> //change to hunt msg
 #include <wiringPi.h>
 
+#define GPIO_HUNT_0 5
+#define GPIO_HUNT_1 6
+
 using namespace std;
 
 namespace ky_033_node {
@@ -45,8 +48,8 @@ int main(int argc, char **argv) {
   wiringPiSetupSys();  // uses gpio pin numbering
   // TODO: config these
   vector<ky_033_node::Hunt> hunts;
-  hunts.push_back(ky_033_node::Hunt(5));
-  hunts.push_back(ky_033_node::Hunt(6));
+  hunts.push_back(ky_033_node::Hunt(GPIO_HUNT_0));
+  hunts.push_back(ky_033_node::Hunt(GPIO_HUNT_1));
 
   // Build a publisher for each Hunt sensor.
   vector<ros::Publisher> hunt_pubs;

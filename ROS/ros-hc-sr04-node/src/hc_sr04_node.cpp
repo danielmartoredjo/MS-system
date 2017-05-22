@@ -7,6 +7,13 @@
 #include <hc_sr04/obj_sensor.h>
 #include <wiringPi.h>
 
+#define GPIO_SONAR_0_TRIG    24
+#define GPIO_SONAR_0_ECHO    25
+#define GPIO_SONAR_1_TRIG    22
+#define GPIO_SONAR_1_ECHO    23
+#define GPIO_SONAR_2_TRIG    18
+#define GPIO_SONAR_2_ECHO    27
+
 using namespace std;
 
 namespace hc_sr04_node {
@@ -82,9 +89,9 @@ int main(int argc, char **argv) {
   wiringPiSetupSys();  // uses gpio pin numbering
   // TODO: config these
   vector<hc_sr04_node::Sonar> sonars;
-  sonars.push_back(hc_sr04_node::Sonar(24, 25));
-  sonars.push_back(hc_sr04_node::Sonar(22, 23));
-  sonars.push_back(hc_sr04_node::Sonar(18, 27));
+  sonars.push_back(hc_sr04_node::Sonar(GPIO_SONAR_0_TRIG, GPIO_SONAR_0_ECHO));
+  sonars.push_back(hc_sr04_node::Sonar(GPIO_SONAR_1_TRIG, GPIO_SONAR_1_ECHO));
+  sonars.push_back(hc_sr04_node::Sonar(GPIO_SONAR_2_TRIG, GPIO_SONAR_2_ECHO));
 
   // Build a publisher for each sonar.
   vector<ros::Publisher> sonar_pubs;
