@@ -14,6 +14,15 @@
 #define GPIO_SONAR_2_TRIG    18
 #define GPIO_SONAR_2_ECHO    27
 
+#define CSV_TEST
+#define CSV_FILE_NAME "Ultrasonic_measure.csv"
+
+#define FILTER_ARRAY_SIZE 20
+#define SAMPLE_STANDARD_DEVIATION 0.2
+
+float filterSample(float array[], int size);
+float filterSpikeAverage(float array[], int size);
+
 using namespace std;
 
 namespace hc_sr04_node {
@@ -117,22 +126,60 @@ int main(int argc, char **argv) {
   std_msgs::Float32 hc_distance_send_0;
   std_msgs::Float32 hc_distance_send_1;
   std_msgs::Float32 hc_distance_send_2;
+
+  #ifdef CSV_TEST
+    FILE *fp;
+    int i_measure = 0;
+    fp = fopen(CSV_FILE_NAME, "w+"); // creates new/blanks the file
+    fprintf(fp, "i, raw, filtered\n");
+    fclose(fp);
+  #endif
+
+  float filterArray[FILTER_ARRAY_SIZE];
+  int filterArrayIndex = 0;
+
   while(ros::ok()) {    
     for (int i = 0; i < sonars.size(); ++i) {
       range.header.stamp = ros::Time::now();
       range.range = sonars[i].distance(&error);
-      if (i == 0){hc_distance_send_0.data = range.range;
-          sonic_0_pubs.publish(hc_distance_send_0);}
-      if (i == 1){hc_distance_send_1.data = range.range;
-          sonic_1_pubs.publish(hc_distance_send_1);}
-      if (i == 2){hc_distance_send_2.data = range.range;
-          sonic_2_pubs.publish(hc_distance_send_2);}
+      if (i == 0)
+        {
+          hc_distance_send_0.data = range.range;
+          sonic_0_pubs.publish(hc_distance_send_0);
+        }
+      if (i == 1)
+        {
+          hc_distance_send_1.data = range.range;
+          sonic_1_pubs.publish(hc_distance_send_1);
+        }
+      if (i == 2)
+        {
+          hc_distance_send_2.data = range.range;
+          sonic_2_pubs.publish(hc_distance_send_2);
+        }
       if (error)
 	    ROS_WARN("Error on sonar %d", i);
       else
-    //hc_distance_send.data = sonars[1].distance(&error);;
-    //sonic_pubs.publish(hc_distance_send);
-	  sonar_pubs[i].publish(range);
+        //hc_distance_send.data = sonars[1].distance(&error);;
+        //sonic_pubs.publish(hc_distance_send);
+    	  sonar_pubs[i].publish(range);
+
+      filterArray[filterArrayIndex] = hc_distance_send_0.data;
+      filterArrayIndex++;
+      filterArrayIndex %= FILTER_ARRAY_SIZE; // keep in range
+
+      #ifdef CSV_TEST
+        if (i_measure < 1000)
+        {
+          fp = fopen(CSV_FILE_NAME, "a"); // open for appending
+          fprintf(fp, "%d, %.4f, %.4f\n", i_measure, hc_distance_send_0.data, 
+            // filterSample(filterArray, FILTER_ARRAY_SIZE));
+            filterSpikeAverage(filterArray, FILTER_ARRAY_SIZE));
+          i_measure++;
+          fclose(fp);
+        }
+      #endif
+
     }
     ros::spinOnce();
     rate.sleep();    
@@ -140,3 +187,78 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+float filterSpikeAverage(float array[], int size)
+{
+  float average = 0;
+  for (int i = 0; i < size; i++)
+  {
+    average += array[i];
+  }
+  average /= size;
+
+  float averageNoSpike = 0;
+  int count = 0;
+  float standardDeviation = SAMPLE_STANDARD_DEVIATION;
+  for (int i = 0; i < size; i++)
+  {
+    if ( (array[i] < average * (1 + standardDeviation)) && (array[i] > average * (1 - standardDeviation)) )
+    {
+      averageNoSpike += array[i];
+      count++;
+    } else if (array[i] > 0 && array[0] < 60){
+      // fix the deviated value to average
+      array[i] = average;
+    }
+  }
+  return averageNoSpike/count;
+}
+
+float filterSample(float array[], int size)
+/*
+ *  Written of. too much cpu in use
+ */
+{
+  float sortArray[size];
+  for (int i = 0; i < size; i++)
+  {
+    sortArray[i] = array[i];
+  }
+
+  /*
+  * Array sorting code
+  */
+  int changed = 0;
+  float temp;
+  do
+  {
+    // keep repeating until no changes occured
+    changed = 0;
+    for(int i = 0; i<size; i++)
+    {
+      for(int j = i + 1; j<size; j++)
+      {
+        /*
+        * If there is a smaller element towards right of the array then swap it.
+        */
+        if(sortArray[j] < sortArray[i])
+        {
+          temp = sortArray[i];
+          sortArray[i] = sortArray[j];
+          sortArray[j] = temp;
+          changed = 1;
+        }
+      }
+    }
+  } while (changed);
+
+  // use center average
+  float avg;
+  int count;
+  for (int i = 4; i < size-5; i++)
+  {
+    avg += sortArray[i];
+    count++;
+  }
+  avg /= count;
+  return avg;
+}
