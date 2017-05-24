@@ -23,6 +23,12 @@
 float filterSample(float array[], int size);
 float filterSpikeAverage(float array[], int size);
 
+struct ultrasonicData
+{
+  float bufferArray[FILTER_ARRAY_SIZE];
+  int index;
+} ultrasoon0, ultrasoon1, ultrasoon2;
+
 using namespace std;
 
 namespace hc_sr04_node {
@@ -135,26 +141,44 @@ int main(int argc, char **argv) {
     fclose(fp);
   #endif
 
-  float filterArray[FILTER_ARRAY_SIZE];
-  int filterArrayIndex = 0;
+  float testfilterArray[FILTER_ARRAY_SIZE];
+  // float filterArray[3][FILTER_ARRAY_SIZE];
+  int testfilterArrayIndex = 0;
+  // int filterArrayIndex[3] = {0, 0, 0};
 
   while(ros::ok()) {    
     for (int i = 0; i < sonars.size(); ++i) {
       range.header.stamp = ros::Time::now();
       range.range = sonars[i].distance(&error);
+
       if (i == 0)
         {
-          hc_distance_send_0.data = range.range;
+          ultrasoon0.bufferArray[ultrasoon0.index] = range.range;
+          ultrasoon0.index++;
+          ultrasoon0.index %= FILTER_ARRAY_SIZE;
+
+          // hc_distance_send_0.data = range.range;
+          hc_distance_send_0.data = filterSpikeAverage(ultrasoon0.bufferArray, FILTER_ARRAY_SIZE);
           sonic_0_pubs.publish(hc_distance_send_0);
         }
       if (i == 1)
         {
-          hc_distance_send_1.data = range.range;
+          ultrasoon1.bufferArray[ultrasoon1.index] = range.range;
+          ultrasoon1.index++;
+          ultrasoon1.index %= FILTER_ARRAY_SIZE;
+
+          // hc_distance_send_1.data = range.range;
+          hc_distance_send_1.data = filterSpikeAverage(ultrasoon1.bufferArray, FILTER_ARRAY_SIZE);
           sonic_1_pubs.publish(hc_distance_send_1);
         }
       if (i == 2)
         {
-          hc_distance_send_2.data = range.range;
+          ultrasoon2.bufferArray[ultrasoon2.index] = range.range;
+          ultrasoon2.index++;
+          ultrasoon2.index %= FILTER_ARRAY_SIZE;
+
+          // hc_distance_send_2.data = range.range;
+          hc_distance_send_2.data = filterSpikeAverage(ultrasoon0.bufferArray, FILTER_ARRAY_SIZE);
           sonic_2_pubs.publish(hc_distance_send_2);
         }
       if (error)
@@ -164,17 +188,18 @@ int main(int argc, char **argv) {
         //sonic_pubs.publish(hc_distance_send);
     	  sonar_pubs[i].publish(range);
 
-      filterArray[filterArrayIndex] = hc_distance_send_0.data;
-      filterArrayIndex++;
-      filterArrayIndex %= FILTER_ARRAY_SIZE; // keep in range
 
       #ifdef CSV_TEST
+        testfilterArray[testfilterArrayIndex] = hc_distance_send_0.data;
+        testfilterArrayIndex++;
+        testfilterArrayIndex %= FILTER_ARRAY_SIZE; // keep in range
+
         if (i_measure < 1000)
         {
           fp = fopen(CSV_FILE_NAME, "a"); // open for appending
           fprintf(fp, "%d, %.4f, %.4f\n", i_measure, hc_distance_send_0.data, 
             // filterSample(filterArray, FILTER_ARRAY_SIZE));
-            filterSpikeAverage(filterArray, FILTER_ARRAY_SIZE));
+            filterSpikeAverage(testfilterArray, FILTER_ARRAY_SIZE));
           i_measure++;
           fclose(fp);
         }
@@ -210,7 +235,11 @@ float filterSpikeAverage(float array[], int size)
       array[i] = average;
     }
   }
-  return averageNoSpike/count;
+  if (count != 0)
+  {
+    return averageNoSpike/count;  
+  } 
+  return 0;
 }
 
 float filterSample(float array[], int size)
