@@ -47,7 +47,7 @@ if (gem <= 10 && state == 0)
 }
 else if(gem <= 10.0 && state == 1)
 {
-    npwM = 1420;
+    npwM = 1520;
 }
 else if(gem > 13.0 && gem <= 28.0)
 {
@@ -81,14 +81,14 @@ us   | angle
 static int step = 40;
 float axis(void)
 {
-  if(hc_range_0 == 60.0 && hc_range_1 <= 60.0 && hc_range_2 < 60.0)
+  if(hc_range_0 >= 50.0 && hc_range_1 <= 50.0 && hc_range_2 < hc_range_0)
   {
    npwA = npwA + step;
    if (npwA >= 1660){
     npwA = 1660;
    }
   }
-  else if(hc_range_0 < 60.0 && hc_range_1 <= 60.0 && hc_range_2 == 60.0)
+  else if(hc_range_0 < hc_range_2 && hc_range_1 <= 50.0 && hc_range_2 >= 50.0)
   {
    npwA = npwA - step;
    if (npwA <= 1100){
