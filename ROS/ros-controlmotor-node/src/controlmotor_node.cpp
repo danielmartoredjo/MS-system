@@ -50,28 +50,28 @@ if (hc_range_1 > 0 && hc_range_1 <= 20 && state == 0)
 else if(hc_range_1 > 22.0 && hc_range_1 <= 28.0)
 {
   npwM = 1600;
-  drive = drive + 1;
-  brake = 0;
-  state = 0;
-  if (drive >= 20){
-    state = 1;
-  }
+//  drive = drive + 1;
+//  brake = 0;
+//  state = 0;
+ // if (drive >= 20){
+//    state = 1;
+}
   
 }
 else if(hc_range_1 > 28 && hc_range_1 < 45.0 )
 {
   npwM = 1610;
-  drive = drive + 1;
-  brake = 0;
-  state = 0;
-  if (drive >=20){
-    state = 1;
+//  drive = drive + 1;
+//  brake = 0;
+//  state = 0;
+//  if (drive >=20){
+//    state = 1;
   }
 } 
 else if(hc_range_1 >= 52.0)
 {
     npwM = 1520;
-    state = 0;
+//    state = 0;
 }
 return 0;
 }
