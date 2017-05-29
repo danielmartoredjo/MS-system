@@ -14,6 +14,7 @@ float hc_range_0;
 float hc_range_1;
 float hc_range_2;
 
+
 namespace controlmotor_node {
 //V0.2
 
@@ -30,38 +31,47 @@ namespace controlmotor_node {
 float npwM = 1520;
 float npwA = 1380;
 static int state = 0;
-static int kickstart = 0;
-static int een = 0;
-static int twee = 0;
-static int gem = 0;
+static int brake = 0;
+static int drive = 0;
 float pwm(void)
 {
-    gem = twee;
-    twee = een;
-    een = hc_range_1;
-    gem = een + twee + gem;
-    gem = gem / 3;
-if (gem <= 10 && state == 0)
+if (hc_range_1 > 0 && hc_range_1 <= 20 && state == 0)
 {
   npwM = 1520;
 }
-else if(gem <= 10.0 && state == 1)
+/*else if ( hc_range_1 > 0 && hc_range_1 <= 10.0 && state == 1)
 {
-    npwM = 1520;
-}
-else if(gem > 13.0 && gem <= 28.0)
+  drive = 0;
+  brake = brake + 1;
+  if (brake < 60 ){
+    npwM = 1000;
+  }
+}*/
+else if(hc_range_1 > 22.0 && hc_range_1 <= 28.0)
 {
   npwM = 1600;
-  state = 1;
-}
-else if(gem > 28 && gem < 45.0 )
-{
-    npwM = 1610;
+  drive = drive + 1;
+  brake = 0;
+  state = 0;
+  if (drive >= 20){
     state = 1;
+  }
+  
+}
+else if(hc_range_1 > 28 && hc_range_1 < 45.0 )
+{
+  npwM = 1610;
+  drive = drive + 1;
+  brake = 0;
+  state = 0;
+  if (drive >=20){
+    state = 1;
+  }
 } 
-else if(gem >= 52.0)
+else if(hc_range_1 >= 52.0)
 {
     npwM = 1520;
+    state = 0;
 }
 return 0;
 }
@@ -78,24 +88,38 @@ us   | angle
 1660 |  15
 
 */
+enum states { rechts, midden, links } current_state;
 static int step = 40;
+static int M = 50;
 float axis(void)
 {
-  if(hc_range_0 >= 50.0 && hc_range_1 <= 50.0 && hc_range_2 < hc_range_0)
+  current_state = midden;
+  if(hc_range_2 < (hc_range_0 - 15) && hc_range_1 >= 15 && current_state == midden)
   {
+   current_state = rechts;
    npwA = npwA + step;
    if (npwA >= 1660){
     npwA = 1660;
+
    }
   }
-  else if(hc_range_0 < hc_range_2 && hc_range_1 <= 50.0 && hc_range_2 >= 50.0)
+  else if(hc_range_0 < (hc_range_2 - 15) && hc_range_1 >= 15 && current_state == midden)
   {
+   current_state = links;
    npwA = npwA - step;
    if (npwA <= 1100){
     npwA = 1100;
+
    }
   }
-  else{
+  else if(hc_range_1 <= M && hc_range_0 >= (hc_range_2 - 10) && hc_range_0 <= (hc_range_2 + 10) && hc_range_2 >= (hc_range_0 - 10) && hc_range_2 <= (hc_range_0 + 10)){
+    npwA = 1380;
+    current_state = midden;
+  }
+  else if (hc_range_1 >= M && hc_range_0 >= M && hc_range_0 >= M ) {
+    npwA = 1380;
+  }
+  else {
     npwA = 1380;
   }
 }
@@ -119,7 +143,7 @@ int main(int argc, char **argv) {
   ROS_INFO("Starting node");
   ros::init(argc, argv, "controlmotor");
   ros::NodeHandle node;
-  ros::Rate rate(60);  // 10 hz
+  ros::Rate rate(200);  // 10 hz
   
 
   // Build N motor_drive.
