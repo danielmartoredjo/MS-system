@@ -55,7 +55,7 @@ else if(hc_range_1 > 22.0 && hc_range_1 <= 28.0)
 //  state = 0;
  // if (drive >= 20){
 //    state = 1;
-}
+//}
   
 }
 else if(hc_range_1 > 28 && hc_range_1 < 45.0 )
@@ -66,7 +66,7 @@ else if(hc_range_1 > 28 && hc_range_1 < 45.0 )
 //  state = 0;
 //  if (drive >=20){
 //    state = 1;
-  }
+//  }
 } 
 else if(hc_range_1 >= 52.0)
 {
