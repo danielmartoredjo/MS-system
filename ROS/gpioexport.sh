@@ -2,7 +2,7 @@
 #!/bin/sh
 
 # used GPIOs
-# 5, 6, 18, 19, 22, 23, 24, 25, 26, 27
+# 4, 5, 6, , 17, 18, 19, 22, 23, 24, 25, 26, 27
 
 
 
@@ -71,3 +71,14 @@ echo "out" > /sys/class/gpio/gpio18/direction
 # Set up GPIO 27 input
 echo "27" > /sys/class/gpio/export
 echo "in" > /sys/class/gpio/gpio27/direction
+
+# Hall_sensor_0
+# Set up GPIO 17 input
+echo "17" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio17/direction
+
+# Hall_sensor_1
+# Set up GPIO 4 input
+echo "4" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio4/direction
+
