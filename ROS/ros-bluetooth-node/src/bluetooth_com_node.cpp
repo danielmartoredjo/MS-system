@@ -1,6 +1,6 @@
 /*
  *  File: bluetooth_com.cpp
- *  version: 1.0
+ *  version: 1.1
  */
 
 #include <vector>
@@ -92,6 +92,20 @@ int main(int argc, char **argv)
         {
             // read data
             ROS_INFO("Received [%s]\n", buf);
+            // do stuff to receive the data
+
+
+            // do stuff with the data
+            master_speed_send.data++;
+            master_acce_x_send.data++;
+            master_acce_y_send.data++;
+            master_acce_z_send.data++;
+
+            // Publish the values
+            master_speed_pub.publish(master_speed_send);
+            master_acce_x_pub.publish(master_acce_x_send);
+            master_acce_y_pub.publish(master_acce_y_send);
+            master_acce_z_pub.publish(master_acce_z_send);
 
         } else {
             ROS_WARN("Connection lost. Retry listening\n");
