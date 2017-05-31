@@ -48,7 +48,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   dist_sensor.msg
+   hall_sensor.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -103,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   CATKIN_DEPENDS message_runtime
 #  INCLUDE_DIRS include
-#  LIBRARIES hc_sr04
+  LIBRARIES ky_024
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
 )
