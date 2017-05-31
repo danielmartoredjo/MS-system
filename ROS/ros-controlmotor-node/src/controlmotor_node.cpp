@@ -31,47 +31,48 @@ namespace controlmotor_node {
 float npwM = 1520;
 float npwA = 1380;
 static int state = 0;
-static int brake = 0;
+static int stop = 0;
 static int drive = 0;
 float pwm(void)
 {
-if (hc_range_1 > 0 && hc_range_1 <= 20 && state == 0)
-{
+if ((hc_range_1 <= 20  && state == 0) || (hc_range_1 > 15 && hc_range_1 <= 20 && (state == 1 || state == 2))){
   npwM = 1520;
 }
-/*else if ( hc_range_1 > 0 && hc_range_1 <= 10.0 && state == 1)
-{
-  drive = 0;
-  brake = brake + 1;
-  if (brake < 60 ){
-    npwM = 1000;
-  }
-}*/
-else if(hc_range_1 > 22.0 && hc_range_1 <= 28.0)
-{
+else if (hc_range_1 > 25 && hc_range_1 <= 28){
   npwM = 1600;
-//  drive = drive + 1;
-//  brake = 0;
-//  state = 0;
- // if (drive >= 20){
-//    state = 1;
-//}
+  state = 1;
+}
+else if (hc_range_1 >  28 && hc_range_1 < 52 && state == 1){
+  npwM = 1610;
+  state = 2;
+}
+else if (hc_range_1 <= 15 && (state == 1 || state == 2)){
+  npwM = 1000;
+  stop = stop++;
+  if (stop == 30){
+  stop = 0;
+  state = 3;
+  }
+}
+else if (state == 3 ){
+  npwM = 1520;
+  stop = stop++;
+  if (stop == 30){
+  stop = 0;
+  state = 4;
+  }
   
 }
-else if(hc_range_1 > 28 && hc_range_1 < 45.0 )
-{
-  npwM = 1610;
-//  drive = drive + 1;
-//  brake = 0;
-//  state = 0;
-//  if (drive >=20){
-//    state = 1;
-//  }
-} 
-else if(hc_range_1 >= 52.0)
-{
-    npwM = 1520;
-//    state = 0;
+else if (hc_range_1 < 15 && state == 4){
+  npwM = 1000;
+}
+else if (hc_range_1 >= 15 && state == 4){
+  npwM = 1520;
+  state = 0;
+}
+else if (hc_range_1 >= 52){
+  npwM = 1520;
+  state = 0;
 }
 return 0;
 }
