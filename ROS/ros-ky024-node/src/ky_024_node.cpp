@@ -42,9 +42,6 @@ namespace ky_024_node {
 			SensorSpd = 60000 / tijd; //( in RPM)
 			lock = 0;
 			}
-      if(digitalRead(signal_) == LOW) {
-	       SensorSpd = 0;
-        }
     return SensorSpd;
     }
 
