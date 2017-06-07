@@ -12,7 +12,7 @@ float starttime = 0;
 float endtime = 0;
 float tijd = 0;
 int lock = 0;
-int test = 0;
+int testt = 0;
 
 using namespace std;
 
