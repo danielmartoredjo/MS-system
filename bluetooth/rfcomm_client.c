@@ -1,6 +1,6 @@
 /*
  * File: rfcomm_client.c
- * version: 1.2
+ * version: 1.3
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -14,49 +14,35 @@ int connect_bluetooth(int* s, int* status);
 
 int main(int argc, char **argv){
 	int s, status;
-        char message[]="hello:000";
+	int speed = 1234;
+	int accX = 5678;
+	int accY = 9123;
+	int accZ = 4567;
+        char message[]="VXXXX_AxYYYY_AyYYYY_AzYYYY"; //XXXX is the speed in rpm and YYYY is the acceleration in something
         int i = 0;
 
-//	while(1){
-//		int s, status;
-//		char message[]="hello:000";
-//		int i;
-
 	connect_bluetooth(&s, &status);
-	/*while(1){
-                // send a message
-                if( status == 0 ){
-                        message[6]=(i/100)%10 + '0';
-                        message[7]=(i/10)%10 + '0';
-                        message[8]=i%10 + '0';
-                        i++;
-                        status = write(s, message, 10);
-                        //status = write(s, "hello2", 8);
-                }
-                //Retry connecting
-//              while(status < 0){
-//                      printf("retry connection %d\n", status);
-//                      sleep(2);
-//                      close(s);
-//                      connect_bluetooth(&s, &status);
-//              }
-
-                if( status < 0 ) perror("uh oh");{
-                        printf("retry connection %d\n", status);
-                        sleep(2);
-                        close(s);
-                        connect_bluetooth(&s, &status);
-                }
-        }*/
 
 	while(1){
 		if( status >= 0 ){
-			message[6]=(i/100)%10 + '0';
-                        message[7]=(i/10)%10 + '0';
-                        message[8]=i%10 + '0';
-                        i++;
-                        status = write(s, message, 10);
-                        //status = write(s, "hello2", 8);
+			message[1]=(speed/1000)%10 + '0';
+			message[2]=(speed/100)%10 + '0';
+			message[3]=(speed/10)%10 + '0';
+			message[4]=speed%10 + '0';
+			message[8]=(accX/1000)%10 + '0';
+			message[9]=(accX/100)%10 + '0';
+			message[10]=(accX/10)%10 + '0';
+			message[11]=accX%10 + '0';
+			message[15]=(accY/1000)%10 + '0';
+                        message[16]=(accY/100)%10 + '0';
+                        message[17]=(accY/10)%10 + '0';
+                        message[18]=accY%10 + '0';
+			message[22]=(accZ/1000)%10 + '0';
+                        message[23]=(accZ/100)%10 + '0';
+                        message[24]=(accZ/10)%10 + '0';
+                        message[25]=accZ%10 + '0';
+
+                        status = write(s, message, 27);
                 }
 
 		// send a message
