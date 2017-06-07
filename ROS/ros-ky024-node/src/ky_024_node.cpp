@@ -12,6 +12,7 @@ float starttime = 0;
 float endtime = 0;
 float tijd = 0;
 int lock = 0;
+int test = 0;
 
 using namespace std;
 
@@ -29,6 +30,8 @@ namespace ky_024_node {
 
      float value() {
       float SensorSpd;
+							if(testt == 0){
+							testt = 1;
 	 if (digitalRead(signal_) == HIGH && lock == 0){
 		starttime = micros();
     lock = 1;
@@ -42,6 +45,7 @@ namespace ky_024_node {
 			SensorSpd = 60000 / tijd; //( in RPM)
 			lock = 0;
 			}
+							}
     return SensorSpd;
     }
 
