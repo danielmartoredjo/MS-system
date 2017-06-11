@@ -1,3 +1,8 @@
+/*
+ * file: controlmotor_node.cpp
+ * version: 1.4
+ */
+
 #include <vector>
 #include <std_msgs/Float32.h>
 #include <stdio.h>
@@ -10,104 +15,320 @@
 
 using namespace std;
 
-float hc_range;
+float hc_range_0;
+float hc_range_1;
+float hc_range_2;
+
+#define SCHEDULING_RATE 200 // hz
+#define STOP_CYCLES SCHEDULING_RATE / 10 // stop cycles for the break states
 
 namespace controlmotor_node {
 //V0.2
 
  class Control {
-  public:
-   Control(int d) : signal_(d) {
-     pinMode(signal_, INPUT);
-     }
+    public:
+     Control(int d) : signal_(d) {
+         pinMode(signal_, INPUT);
+         }
  private:
-  int signal_;
+    int signal_;
  }; 
 }
 
 float npwM = 1520;
 float npwA = 1380;
-static int kickstart = 0;
-static int een = 0;
-static int twee = 0;
-static int gem = 0;
+enum motor_states { idle, drive0, drive1, brake_init, brake_stationary, brake_reverse } ;
+static enum motor_states state = idle;
+static enum motor_states ostate = brake_stationary;
+static int stop = 0;
+static int drive = 0;
 float pwm(void)
 {
-    gem = twee;
-    twee = een;
-    een = hc_range;
-    gem = een + twee + gem;
-    gem = gem / 3;
-
-    if(gem <= 7.0)
+    // determine state
+    switch(state)
     {
-        npwM = 1520;
-        kickstart = 0;
+        case idle:
+            if (hc_range_1 <= 25)
+            {
+                state = idle;
+            } 
+            else if (hc_range_1 > 25) 
+            {
+                state = drive0;
+            }
+            break;
+
+        case drive0:
+            if (hc_range_1 > 40) 
+            {
+                state = drive1;
+            }
+            else if (hc_range_1 <= 20)
+            {
+                state = brake_init;
+            }
+            break;
+
+        case drive1:
+            if (hc_range_1 <= 40 && hc_range_1 > 25)
+            {
+                state = drive0;
+            }
+            else if (hc_range_1 <= 25)
+            {
+                state = brake_init;
+            }
+            break;
+
+        case brake_init:
+            if (stop >= STOP_CYCLES)
+            {
+                state = brake_stationary;
+                stop = 0;
+            }
+            else 
+            {
+                state = brake_init;
+            }
+            break;
+
+        case brake_stationary:
+            if (stop >= STOP_CYCLES)
+            {
+                state = brake_reverse;
+                stop = 0;
+            }
+            else
+            {
+                state = brake_stationary;
+            }
+            break;
+
+        case brake_reverse:
+            if (stop >= STOP_CYCLES)
+            {
+                state = idle;
+                stop = 0;
+            }
+            else
+            {
+                state = brake_reverse;
+            }
+            break;
+
+        default:
+            state = idle;
     }
-    else if(gem > 13.0 && gem <= 28.0)
-      {
+
+    // out of range emergency state
+    if (hc_range_1 > 58.0)
+    {
+        state = idle;
+    }
+
+    // act on state
+    switch (state)
+    {
+        case idle:
+            npwM = 1520;
+            stop = 0;    
+            break;
+
+        case drive0:
+            npwM = 1600;
+            stop = 0;
+            break;
+
+        case drive1:
+            npwM = 1605;
+            stop = 0;
+            break;
+
+        case brake_init:
+            npwM = 1000;
+            stop++;
+            break;
+
+        case brake_stationary:
+            npwM = 1520;
+            stop++;
+            break;
+
+        case brake_reverse:
+            npwM = 1320;
+            stop++;
+            break;
+
+        default:
+            npwM = 1520;
+            stop = 0;
+    }
+
+    /*
+    //determine state
+    if ((hc_range_1 <= 20  && state == 0)){
+        state = 0;
+    }
+    else if (hc_range_1 > 25 && hc_range_1 <= 40 && (state == 0 || state == 2)){
+        state = 1;
+    }
+    else if (hc_range_1 >  40 && hc_range_1 < 58 && (state == 0 || state == 1)){
+        state = 2;
+    }
+    else if (hc_range_1 <= 20 && (state == 1 || state == 2)){
+        state = 3;
+    }
+    else if (state == 3 ){
+        stop++;
+        if (stop >= 20){
+            stop = 0;
+            state = 4;
+        }
+    }
+    else if (state == 4){
+        stop++;
+        if (stop >= 20){
+            stop = 0;
+            state = 5;
+        }
+    }
+    else if (state == 5){
+        stop++;
+        if (stop >= 20){
+            stop = 0;
+            state = 0;
+        }
+    }
+    else if (hc_range_1 >= 58){
+        state = 0;
+    }
+
+    // act on state
+    if (state == 0){
+        npwM = 1520;
+    }
+    else if (state == 1){
+        npwM = 1600;
+    }
+    else if (state == 2){
         npwM = 1610;
-        /*if(kickstart <= 6)
-        {
-          kickstart++;
-          npwM = 1610;
-        }
-        else if(kickstart > 6)
-        {
-          npwM = 1590;
-        }
-        */
-  }
-  else if(gem > 28 && gem < 45.0 )
-  {
-      npwM = 1625;
-  } 
-  else if(gem >= 52.0)
-  {
-      npwM = 1520;
-  }
- return 0;
+    }
+    else if (state == 3){
+        npwM = 1000;  
+    }
+    else if (state == 4){
+        npwM = 1520;
+    }
+    else if (state == 5){
+        npwM = 1320;
+    }
+
+    */
+    if (ostate != state)
+    {
+        ostate = state;
+        ROS_INFO("Motor state: %d", state);
+    }
+return 0;
 }
 
 
-void hc_sr04Cb(const std_msgs::Float32::ConstPtr& msg){
-hc_range  = msg->data;
+/*
+us   | angle
+-----------
+1000 |  -20
+1100 |  -15
+1180 |  -10
+1380 |  0
+1560 |  10
+1660 |  15
+
+*/
+enum states { rechts, midden, links } current_state;
+static int step = 2;
+static int M = 50;
+float axis(void)
+{
+    current_state = midden;
+    if(hc_range_2 < (hc_range_0 - 15) && hc_range_1 >= 15 && current_state == midden)
+    {
+     current_state = rechts;
+     npwA = npwA + step;
+     if (npwA >= 1660){
+        npwA = 1660;
+
+     }
+    }
+    else if(hc_range_0 < (hc_range_2 - 15) && hc_range_1 >= 15 && current_state == midden)
+    {
+     current_state = links;
+     npwA = npwA - step;
+     if (npwA <= 1100){
+        npwA = 1100;
+
+     }
+    }
+    else if(hc_range_1 <= M && hc_range_0 >= (hc_range_2 - 10) && hc_range_0 <= (hc_range_2 + 10) && hc_range_2 >= (hc_range_0 - 10) && hc_range_2 <= (hc_range_0 + 10)){
+        npwA = 1380;
+        current_state = midden;
+    }
+    else if (hc_range_1 >= M && hc_range_0 >= M && hc_range_0 >= M ) {
+        npwA = 1380;
+    }
+    else {
+        npwA = 1380;
+    }
+}
+
+void hc_sr04_0Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range_0  = msg->data;
+}
+
+void hc_sr04_1Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range_1  = msg->data;
+}
+
+void hc_sr04_2Cb(const std_msgs::Float32::ConstPtr& msg){
+hc_range_2  = msg->data;
 }
 
 
 
 int main(int argc, char **argv) {
-  // Start ROS node.
-  ROS_INFO("Starting node");
-  ros::init(argc, argv, "controlmotor");
-  ros::NodeHandle node;
-  ros::Rate rate(10);  // 10 hz
-  
+    // Start ROS node.
+    ROS_INFO("Starting node");
+    ros::init(argc, argv, "controlmotor");
+    ros::NodeHandle node;
+    ros::Rate rate(SCHEDULING_RATE);  
+    
 
-  // Build N motor_drive.
-  wiringPiSetupSys();  // uses gpio pin numbering
-  vector<controlmotor_node::Control> controlmotors;
-  controlmotors.push_back(controlmotor_node::Control(18));
+    // Build N motor_drive.
+    wiringPiSetupSys();  // uses gpio pin numbering
+    vector<controlmotor_node::Control> controlmotors;
+    controlmotors.push_back(controlmotor_node::Control(18));
 
-  // Build a publisher for each Hunt sensor.
-  ros::Publisher speed_pubs = node.advertise<std_msgs::Float32>("motor_speed", 100);
-  ros::Publisher axis_pubs = node.advertise<std_msgs::Float32>("motor_axis", 100);
-
-
-  ros::Subscriber sub = node.subscribe("hc_sr04_range", 1000, hc_sr04Cb);
+    // Build a publisher for each Hunt sensor.
+    ros::Publisher speed_pubs = node.advertise<std_msgs::Float32>("motor_speed", 100);
+    ros::Publisher axis_pubs = node.advertise<std_msgs::Float32>("motor_axis", 100);
 
 
-  std_msgs::Float32 npwA_send;
-  std_msgs::Float32 npwM_send;
-  while(ros::ok()) {
-    pwm();
-    npwA_send.data = npwA;
-    npwM_send.data = npwM;
-    axis_pubs.publish(npwA_send);
-    speed_pubs.publish(npwM_send);
-    ros::spinOnce();
-    rate.sleep();    
-  }
-  return 0;
+    ros::Subscriber sub_0 = node.subscribe("hc_sr04_range_0", 10, hc_sr04_0Cb);
+    ros::Subscriber sub_1 = node.subscribe("hc_sr04_range_1", 10, hc_sr04_1Cb);
+    ros::Subscriber sub_2 = node.subscribe("hc_sr04_range_2", 10, hc_sr04_2Cb);
+
+
+    std_msgs::Float32 npwA_send;
+    std_msgs::Float32 npwM_send;
+    while(ros::ok()) {
+        pwm();
+        axis();
+        npwA_send.data = npwA;
+        npwM_send.data = npwM;
+        axis_pubs.publish(npwA_send);
+        speed_pubs.publish(npwM_send);
+        ros::spinOnce();
+        rate.sleep();    
+    }
+    return 0;
 }
 

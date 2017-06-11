@@ -1,3 +1,8 @@
+/*
+ *  file: hc_sr04_node.cpp
+ *  version: 1.2
+ */
+
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +11,9 @@
 #include <std_msgs/Float32.h>
 #include <hc_sr04/obj_sensor.h>
 #include <wiringPi.h>
+
+
+#define SCHEDULING_RATE 60 //Hz
 
 #define GPIO_SONAR_0_TRIG    24
 #define GPIO_SONAR_0_ECHO    25
@@ -17,7 +25,7 @@
 #define CSV_TEST
 #define CSV_FILE_NAME "Ultrasonic_measure.csv"
 
-#define FILTER_ARRAY_SIZE 10
+#define FILTER_ARRAY_SIZE 5
 #define SAMPLE_STANDARD_DEVIATION 0.2
 
 float filterSample(float array[], int size);
@@ -28,6 +36,8 @@ struct ultrasonicData
   float bufferArray[FILTER_ARRAY_SIZE];
   int index;
 } ultrasoon0, ultrasoon1, ultrasoon2;
+
+static struct timespec udelay;
 
 using namespace std;
 
@@ -58,10 +68,12 @@ class Sonar {
     // see ECHO never go HIGH so we include a way to
     // bail. 
     int bail = 1000;
-    while(digitalRead(echo_) == LOW) {
-      if (--bail == 0) {
-	*error = true;
-	return 0;
+    while(digitalRead(echo_) == LOW) 
+    {
+      if (--bail == 0) 
+      {
+        *error = true;
+        return 0;
       }
     }
 
@@ -71,13 +83,16 @@ class Sonar {
     // MAX reading :/
     long startTime = micros();
     long travelTime = 0;
-    while(digitalRead(echo_) == HIGH) {
+    while(digitalRead(echo_) == HIGH) 
+    {
       travelTime = micros() - startTime;
-      if (travelTime > TRAVEL_TIME_MAX) {
-	travelTime = TRAVEL_TIME_MAX;
-	break;
+      if (travelTime > TRAVEL_TIME_MAX) 
+      {
+      	travelTime = TRAVEL_TIME_MAX;
+      	break;
       }
-      delayMicroseconds(10);
+      delayMicroseconds(1);
+      // ros::Duration(0.0000001).sleep(); // sleep for around 80 micro sec
     }
     
     // Return distance in cm
@@ -98,7 +113,7 @@ int main(int argc, char **argv) {
   ROS_INFO("Starting node");
   ros::init(argc, argv, "hc_sr04s");
   ros::NodeHandle node;
-  ros::Rate rate(60);  // 10 hz
+  ros::Rate rate(SCHEDULING_RATE);  
 
   // Build N sonars.
   wiringPiSetupSys();  // uses gpio pin numbering
@@ -147,7 +162,11 @@ int main(int argc, char **argv) {
   int bufferClear = 0;
   // int filterArrayIndex[3] = {0, 0, 0};
 
-  while(ros::ok()) {    
+  long node_start_time = 0;
+  long node_stop_time = 0;
+
+  while(ros::ok()) {
+    node_start_time = micros();    
     for (int i = 0; i < sonars.size(); ++i) {
       range.header.stamp = ros::Time::now();
       range.range = sonars[i].distance(&error);
@@ -229,6 +248,14 @@ int main(int argc, char **argv) {
       #endif
 
     }
+    // node_start_time = micros();
+    // ros::Duration(0.0000001).sleep(); // sleep for 10 micro sec
+    // udelay.tv_sec = 0;
+    // udelay.tv_nsec = 1000;
+    // nanosleep((const struct timespec[]){{0, 1L}}, NULL);
+    // delayMicroseconds(10);
+    node_stop_time = micros();
+    ROS_INFO("i:%ld, s:%ld, df:%ld", node_start_time, node_stop_time, node_stop_time - node_start_time);
     ros::spinOnce();
     rate.sleep();    
   }
