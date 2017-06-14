@@ -1,6 +1,6 @@
 /*
  * File: rfcomm_client.c
- * version: 1.3
+ * version: 1.4.1
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -14,21 +14,34 @@ int connect_bluetooth(int* s, int* status);
 
 int main(int argc, char **argv){
 	int s, status;
-	int speed = 1234;
-	int accX = 5678;
-	int accY = 9123;
-	int accZ = 4567;
+	char str[30];
+	FILE *file;
+	//int speed = 0;
+	int accX = 0;
+	int accY = 0;
+	int accZ = 0;
         char message[]="VXXXX_AxYYYY_AyYYYY_AzYYYY"; //XXXX is the speed in rpm and YYYY is the acceleration in something
         int i = 0;
 
 	connect_bluetooth(&s, &status);
 
 	while(1){
+		file = fopen( "/dev/pwm_drv" , "r");
+		if (file) {
+    			while (fscanf(file, "%s", str)!=EOF)
+        			printf("%s\n",str);
+				message[1]=str[4];
+				message[2]=str[5];
+				message[3]=str[6];
+				message[4]=str[7];
+    			fclose(file);
+		}
+
 		if( status >= 0 ){
-			message[1]=(speed/1000)%10 + '0';
-			message[2]=(speed/100)%10 + '0';
-			message[3]=(speed/10)%10 + '0';
-			message[4]=speed%10 + '0';
+//			message[1]=(speed/1000)%10 + '0';
+//			message[2]=(speed/100)%10 + '0';
+//			message[3]=(speed/10)%10 + '0';
+//			message[4]=speed%10 + '0';
 			message[8]=(accX/1000)%10 + '0';
 			message[9]=(accX/100)%10 + '0';
 			message[10]=(accX/10)%10 + '0';
