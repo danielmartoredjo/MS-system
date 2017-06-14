@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <std_msgs/Float32.h>
 #include <bluetooth_com/bluetooth_com.h>
+#include <string.h>
 
 // libraries for BlueZ
 #include <sys/socket.h>
@@ -94,9 +95,15 @@ int main(int argc, char **argv)
             ROS_INFO("Received [%s]\n", buf);
             // do stuff to receive the data
 
+            char Sspeed[30];
+            float Fspeed;
+
+            strncpy(Sspeed, buf+1, 4);
+            Sspeed[4]= '\0';
+            Fspeed = strtof(Sspeed, NULL);
 
             // do stuff with the data
-            master_speed_send.data++;
+            master_speed_send.data = Fspeed;
             master_acce_x_send.data++;
             master_acce_y_send.data++;
             master_acce_z_send.data++;
