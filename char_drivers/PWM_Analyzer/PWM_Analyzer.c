@@ -11,28 +11,59 @@
 int main(void)
 {
     // setup wiringPi
-    wiringPiSetup();
+    FILE *pwmDD;
+    wiringPiSetupGpio();
     pinMode(PWM_MOTOR_INPUT_PIN, INPUT);
+    int bail;
+    long startPulse;
+    long pwmWidth;
+    int pwmOld = 1520, pwmNew = 1520;
     while(1)
     {
-        int bail = 1000;
-        while((--bail > 0) && (digitalRead(PWM_MOTOR_INPUT_PIN) != HIGH))
+        bail = 1000;
+        while((digitalRead(PWM_MOTOR_INPUT_PIN) != HIGH))
         {
+            // delayMicroseconds (10);
             usleep(50);
+            // printf("LOW b:%d\n", bail);
         }
-        int startPulse = micros();
+        startPulse = micros();
 
         bail = 1000;
-        while((--bail > 0) && (digitalRead(PWM_MOTOR_INPUT_PIN) == HIGH))
+        while((digitalRead(PWM_MOTOR_INPUT_PIN) == HIGH))
         {
+            // delayMicroseconds (10);
             usleep(50);
+            // printf("HIGH b:%d\n", bail);
         }
-        usleep(50);
-        int pwmWidth = micros() - startPulse;
+        // usleep(50);
+        pwmWidth = micros() - startPulse;
 
-        printf("Pulse Breedte: %d\n", pwmWidth);
+        if (pwmWidth < 1600)
+        {
+            printf("Stop\n");
+            pwmNew = 1520;
+        }
+        else if (pwmWidth >= 1800)
+        {
+            printf("Drive\n");
+            pwmNew = 1600;
+        }
 
-        sleep(0.1);
+        if (pwmNew != pwmOld)
+        {
+            pwmDD = fopen("/dev/pwm_drv","w");
+            if (pwmNew == 1600)
+            {
+                fprintf(pwmDD,"M1600");
+            } else {
+                fprintf(pwmDD,"S");
+            }
+            fclose(pwmDD);
+            pwmOld = pwmNew;
+        }
+
+        sleep(0.2);
     }
     return 0;
 }
