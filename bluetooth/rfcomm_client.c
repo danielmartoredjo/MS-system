@@ -1,6 +1,6 @@
 /*
  * File: rfcomm_client.c
- * version: 1.4.1
+ * version: 1.4.2
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -8,7 +8,8 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
 
-#define SERVER_ADDR "B8:27:EB:5D:7B:C9"
+//#define SERVER_ADDR "B8:27:EB:5D:7B:C9" //Daniel
+#define SERVER_ADDR "B8:27:EB:70:15:29" //Slave
 
 int connect_bluetooth(int* s, int* status);
 
