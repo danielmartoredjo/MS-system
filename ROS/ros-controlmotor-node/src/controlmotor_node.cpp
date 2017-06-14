@@ -18,6 +18,8 @@ using namespace std;
 float hc_range_0;
 float hc_range_1;
 float hc_range_2;
+float speedMeasure;
+int targetSpeed;
 
 #define SCHEDULING_RATE 200 // hz
 #define STOP_CYCLES SCHEDULING_RATE / 10 // stop cycles for the break states
@@ -37,7 +39,7 @@ namespace controlmotor_node {
 
 float npwM = 1520;
 float npwA = 1380;
-enum motor_states { idle, drive0, drive1, brake_init, brake_stationary, brake_reverse } ;
+enum motor_states { idle, drive0, drive1, brake_init, brake_stationary, brake_reverse, brake_idle } ;
 static enum motor_states state = idle;
 static enum motor_states ostate = brake_stationary;
 static int stop = 0;
@@ -63,7 +65,7 @@ float pwm(void)
             {
                 state = drive1;
             }
-            else if (hc_range_1 <= 20)
+            else if (hc_range_1 <= 20  && speedMeasure != 0)
             {
                 state = brake_init;
             }
@@ -74,7 +76,7 @@ float pwm(void)
             {
                 state = drive0;
             }
-            else if (hc_range_1 <= 25)
+            else if (hc_range_1 <= 25 && speedMeasure != 0)
             {
                 state = brake_init;
             }
@@ -107,12 +109,25 @@ float pwm(void)
         case brake_reverse:
             if (stop >= STOP_CYCLES)
             {
-                state = idle;
+
+                state = brake_idle;
                 stop = 0;
             }
             else
             {
                 state = brake_reverse;
+            }
+            break;
+
+        case brake_idle:
+            if (speedMeasure <= 0)
+            {
+                
+                state = idle;
+            }
+            else
+            {
+                state = brake_idle;
             }
             break;
 
@@ -131,99 +146,50 @@ float pwm(void)
     {
         case idle:
             npwM = 1520;
+            //targetSpeed = 0;
             stop = 0;    
             break;
 
         case drive0:
             npwM = 1600;
+            //targetSpeed = 8;
             stop = 0;
             break;
 
         case drive1:
             npwM = 1605;
+            //targetSpeed = 10; 
             stop = 0;
             break;
 
         case brake_init:
             npwM = 1000;
+            //targetSpeed = -10;
             stop++;
             break;
 
         case brake_stationary:
             npwM = 1520;
+            //targetSpeed = 0;
             stop++;
             break;
 
         case brake_reverse:
             npwM = 1320;
+            //targetSpeed = -5;
             stop++;
+            break;
+
+        case brake_idle:
+            npwM = 1520;
             break;
 
         default:
             npwM = 1520;
+            //targetSpeed = 0;
             stop = 0;
     }
 
-    /*
-    //determine state
-    if ((hc_range_1 <= 20  && state == 0)){
-        state = 0;
-    }
-    else if (hc_range_1 > 25 && hc_range_1 <= 40 && (state == 0 || state == 2)){
-        state = 1;
-    }
-    else if (hc_range_1 >  40 && hc_range_1 < 58 && (state == 0 || state == 1)){
-        state = 2;
-    }
-    else if (hc_range_1 <= 20 && (state == 1 || state == 2)){
-        state = 3;
-    }
-    else if (state == 3 ){
-        stop++;
-        if (stop >= 20){
-            stop = 0;
-            state = 4;
-        }
-    }
-    else if (state == 4){
-        stop++;
-        if (stop >= 20){
-            stop = 0;
-            state = 5;
-        }
-    }
-    else if (state == 5){
-        stop++;
-        if (stop >= 20){
-            stop = 0;
-            state = 0;
-        }
-    }
-    else if (hc_range_1 >= 58){
-        state = 0;
-    }
-
-    // act on state
-    if (state == 0){
-        npwM = 1520;
-    }
-    else if (state == 1){
-        npwM = 1600;
-    }
-    else if (state == 2){
-        npwM = 1610;
-    }
-    else if (state == 3){
-        npwM = 1000;  
-    }
-    else if (state == 4){
-        npwM = 1520;
-    }
-    else if (state == 5){
-        npwM = 1320;
-    }
-
-    */
     if (ostate != state)
     {
         ostate = state;
@@ -232,6 +198,48 @@ float pwm(void)
 return 0;
 }
 
+/*
+static float oldpwm = 0;
+float speedctrl()
+  {
+    switch(targetSpeed)
+    {
+        case 0:
+            npwM = 1520;
+            break;
+
+        case -5:
+            npwM = 1320;
+            break;
+
+        case -10:
+            npwM = 1000;
+            break;
+
+        case 8:
+            npwM = 1600;
+            break;
+        
+        case 10:
+            npwM = 1610;
+            break;
+
+        default:
+            npwM = 1520;
+    }
+    if (npwM >= 1520)
+    {
+        if (speedMeasure < targetSpeed)
+        {
+            npwM += 5;
+        }
+        else if (speedMeasure > targetSpeed)
+        {
+           npwM -= 5; 
+        }
+    }
+    oldpwm = npwM;
+  }*/
 
 /*
 us   | angle
@@ -292,6 +300,11 @@ void hc_sr04_2Cb(const std_msgs::Float32::ConstPtr& msg){
 hc_range_2  = msg->data;
 }
 
+void spdMsr_0Cb(const std_msgs::Float32::ConstPtr& msg){
+speedMeasure = msg->data;
+}
+
+
 
 
 int main(int argc, char **argv) {
@@ -316,16 +329,20 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_1 = node.subscribe("hc_sr04_range_1", 10, hc_sr04_1Cb);
     ros::Subscriber sub_2 = node.subscribe("hc_sr04_range_2", 10, hc_sr04_2Cb);
 
+     ros::Subscriber spdMsr_sub_0 = node.subscribe("spdMsr", 10, spdMsr_0Cb);
+
 
     std_msgs::Float32 npwA_send;
     std_msgs::Float32 npwM_send;
     while(ros::ok()) {
         pwm();
         axis();
+        //speedctrl();
         npwA_send.data = npwA;
         npwM_send.data = npwM;
         axis_pubs.publish(npwA_send);
         speed_pubs.publish(npwM_send);
+
         ros::spinOnce();
         rate.sleep();    
     }

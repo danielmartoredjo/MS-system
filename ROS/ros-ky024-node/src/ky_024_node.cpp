@@ -1,6 +1,6 @@
 /*
  *  File:     ky_024_node.cpp
- *  Version:  1.1
+ *  Version:  1.2
  *  Date:     12-06-2017
  */
 
@@ -16,6 +16,7 @@
 #define GPIO_HS_1 6
 
 #define TRAVEL_TIME_MAX_US 1*1000000
+#define POLES 5
 #define TRAVEL_TIME_MIN_US 0.023748*1000000
 
 // max speed = 30 km/h
@@ -47,7 +48,7 @@ namespace ky_024_node {
     float value(bool* error) {
     int bail = 1000;
     do {
-      ros::Duration(0.001).sleep();
+      ros::Duration(0.0001).sleep();
       if (--bail == 0) 
       {
         *error = true;
@@ -59,7 +60,7 @@ namespace ky_024_node {
     startTime = micros();
 
     do {
-      ros::Duration(0.001).sleep();
+      ros::Duration(0.0001).sleep();
       if (--bail == 0) 
       {
         *error = true;
@@ -67,6 +68,7 @@ namespace ky_024_node {
       }
     } while(digitalRead(signal_) == HIGH);
 
+    
     do {
       ros::Duration(0.001).sleep();
       if (--bail == 0) 
@@ -75,8 +77,10 @@ namespace ky_024_node {
         return 0;
       }
     } while(digitalRead(signal_) == LOW);
+    
 
     travelTime = micros() - startTime;
+    travelTime = travelTime * POLES;
     *error = false; 
     if (travelTime >  TRAVEL_TIME_MAX_US){
       travelTime = TRAVEL_TIME_MAX_US;
@@ -86,6 +90,14 @@ namespace ky_024_node {
     }
     speed = (19.79 / travelTime)*10000; //snelheid in m/s   
     return speed*3.6;   //snelheid in km/h
+
+    //speed = 28.03 - (travelTime * 2.2595 / 1000); //snelheid in km/h
+    // speed = 28.03 - (travelTime * 6.676 / 1000); //snelheid in km/h
+    // if (speed < 0 || speed > 30) 
+    // {
+    //   speed = 0;
+    // }
+    //return speed;
   }
 
  private:
