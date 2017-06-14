@@ -2,7 +2,7 @@
  *  PWM_Analyzer.c
  */
 
-#include <stdint.h>
+#include <stdio.h>
 #include <wiringPi.h>
 #include <unistd.h>
 
@@ -27,8 +27,8 @@ int main(void)
         {
             usleep(50);
         }
-
-        int pwmWidth = startPulse - micros();
+        usleep(50);
+        int pwmWidth = micros() - startPulse;
 
         printf("Pulse Breedte: %d\n", pwmWidth);
 
