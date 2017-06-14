@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <wiringPi.h>
-
+#include <unistd.h>
 /**************************************************************************************
  * spiReadReg
  *
@@ -13,6 +13,7 @@
 
 //unsigned char spiReadReg (const unsigned char regAddr){
 void main(void){
+while(1){
 	unsigned char SPICount;	// Counter used to clock out the data 
  	unsigned char SPIData;
 
@@ -43,13 +44,17 @@ void main(void){
   	digitalWrite(SPI_MOSI, LOW);		// Reset the MOSI data line
   	SPIData = 0;
   	for (SPICount = 0; SPICount < 8; SPICount++){ // Prepare to clock in the data to be read
+		printf("in here ");
     		SPIData <<=1;	// Rotate the data
     		digitalWrite(SPI_CK, HIGH);	// Raise the clock to clock the data out of the MAX7456
     		SPIData += digitalRead(SPI_MISO); // Read the data bit
-    		digitalWrite(SPI_CK, LOW);	// Drop the clock ready for the next bit
+    		printf("%d\n", SPIData);
+		digitalWrite(SPI_CK, LOW);	// Drop the clock ready for the next bit
   	}
   	digitalWrite(SPI_CS, HIGH);		// Raise CS
-  	printf("%d", SPIData);
+  	printf("and last %d\n", SPIData);
+	sleep(2);
 	//return ((unsigned char)SPIData); // Finally return the read data
 
+}
 }
