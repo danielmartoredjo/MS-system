@@ -23,8 +23,8 @@
 #define GPIO_SONAR_2_TRIG    18
 #define GPIO_SONAR_2_ECHO    27
 
-#define CSV_TEST
-#define CSV_FILE_NAME "Ultrasonic_measure.csv"
+//#define CSV_TEST
+//#define CSV_FILE_NAME "Ultrasonic_measure.csv"
 
 #define FILTER_ARRAY_SIZE 5
 #define SAMPLE_STANDARD_DEVIATION 0.2
@@ -48,7 +48,7 @@ namespace hc_sr04_node
 
   // Maximum distance reported. Values over this distance
   // report MAX_DISTANCE. TODO make this a property.
-  const static float MAX_DISTANCE = 60;
+  const static float MAX_DISTANCE = 100;
   const static float DIST_SCALE = 58.0;
   const static float TRAVEL_TIME_MAX = MAX_DISTANCE * DIST_SCALE;
 
@@ -249,19 +249,19 @@ int main(int argc, char **argv) {
 	    ROS_WARN("Error on sonar %d", i);
       else
     	  sonar_pubs[i].publish(range);
-      #ifdef CSV_TEST
-
-        if (i_measure < 1000)
-        {
-          fp = fopen(CSV_FILE_NAME, "a"); // open for appending
-          fprintf(fp, "%d, %.4f\n", i_measure, hc_distance_send_0.data
-            // filterSample(filterArray, FILTER_ARRAY_SIZE));
-            /*,filterSpikeAverage(testfilterArray, FILTER_ARRAY_SIZE)*/);
-          i_measure++;
-          fclose(fp);
-        }
-      #endif
-
+//      #ifdef CSV_TEST
+//
+//        if (i_measure < 1000)
+//        {
+//          fp = fopen(CSV_FILE_NAME, "a"); // open for appending
+//          fprintf(fp, "%d, %.4f\n", i_measure, hc_distance_send_0.data
+//            // filterSample(filterArray, FILTER_ARRAY_SIZE));
+//            /*,filterSpikeAverage(testfilterArray, FILTER_ARRAY_SIZE)*/);
+//          i_measure++;
+//          fclose(fp);
+//        }
+//      #endif
+//
     }
 
     // leftRightValueRead = distanceLeftRight(&error, leftValueRead, rightValueRead);
