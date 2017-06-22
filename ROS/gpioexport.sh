@@ -23,10 +23,14 @@
 
 #GPIO for ky-033
 
-#IR_0
-# Set up GPIO 21  and set to input
+#Brake lights
+# Set up GPIO 21  and set to output
 echo "21" > /sys/class/gpio/export
-echo "in" > /sys/class/gpio/gpio21/direction
+echo "out" > /sys/class/gpio/gpio21/direction
+
+# Set up GPIO 6 output
+echo "6" > /sys/class/gpio/export
+echo "out" > /sys/class/gpio/gpio6/direction
 
 
 #GPIO for ky-033
@@ -35,13 +39,6 @@ echo "in" > /sys/class/gpio/gpio21/direction
 # Set up GPIO 5  and set to input
 echo "5" > /sys/class/gpio/export
 echo "in" > /sys/class/gpio/gpio5/direction
-
-#Hunt_1
-# Set up GPIO 6 input
-echo "6" > /sys/class/gpio/export
-echo "in" > /sys/class/gpio/gpio6/direction
-
-
 
 #GPIO for hc-sr04
 
