@@ -2,7 +2,7 @@
 #!/bin/sh
 
 # used GPIOs
-# 5, 6, 18, 19, 22, 23, 24, 25, 26, 27
+# 4, 5, 6, , 17, 18, 19, 20, 22, 23, 24, 25, 26, 27
 
 
 
@@ -20,6 +20,11 @@
 #echo "out" > /sys/class/gpio/gpio26/direction
 # The driver does it manully
 
+#GPIO for motor_interceptor
+# Set up GPIO 20  and set to input
+echo "20" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio20/direction
+
 
 #GPIO for ky-033
 
@@ -33,7 +38,7 @@ echo "6" > /sys/class/gpio/export
 echo "out" > /sys/class/gpio/gpio6/direction
 
 
-#GPIO for ky-033
+#GPIO for ky-024
 
 #Hunt_0
 # Set up GPIO 5  and set to input
@@ -68,3 +73,14 @@ echo "out" > /sys/class/gpio/gpio18/direction
 # Set up GPIO 27 input
 echo "27" > /sys/class/gpio/export
 echo "in" > /sys/class/gpio/gpio27/direction
+
+# Hall_sensor_0
+# Set up GPIO 17 input
+echo "17" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio17/direction
+
+# Hall_sensor_1
+# Set up GPIO 4 input
+echo "4" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio4/direction
+

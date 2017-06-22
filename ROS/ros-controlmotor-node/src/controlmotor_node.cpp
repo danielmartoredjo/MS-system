@@ -2,7 +2,7 @@
  * file: controlmotor_node.cpp
  * version: 1.5
  */
- 
+
 #include <vector>
 #include <std_msgs/Float32.h>
 #include <stdio.h>
@@ -14,7 +14,7 @@
 #include <wiringPi.h>
  
 using namespace std;
- 
+
 float hc_range_0;
 float hc_range_1;
 float hc_range_2;
@@ -28,6 +28,7 @@ int targetSpeed;
 #define GPIO_BRAKE_0 6
 #define GPIO_BRAKE_1 21
  
+
 namespace controlmotor_node {
 //V0.2
  
@@ -37,6 +38,7 @@ namespace controlmotor_node {
          pinMode(signal_, INPUT);
          pinMode(GPIO_BRAKE_0, OUTPUT);
          pinMode(GPIO_BRAKE_1, OUTPUT);
+
          }
  private:
     int signal_;
