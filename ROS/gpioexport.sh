@@ -2,7 +2,7 @@
 #!/bin/sh
 
 # used GPIOs
-# 4, 5, 6, , 17, 18, 19, 22, 23, 24, 25, 26, 27
+# 4, 5, 6, , 17, 18, 19, 20, 22, 23, 24, 25, 26, 27
 
 
 
@@ -20,28 +20,30 @@
 #echo "out" > /sys/class/gpio/gpio26/direction
 # The driver does it manully
 
+#GPIO for motor_interceptor
+# Set up GPIO 20  and set to input
+echo "20" > /sys/class/gpio/export
+echo "in" > /sys/class/gpio/gpio20/direction
+
 
 #GPIO for ky-033
 
-#IR_0
-# Set up GPIO 21  and set to input
+#Brake lights
+# Set up GPIO 21  and set to output
 echo "21" > /sys/class/gpio/export
-echo "in" > /sys/class/gpio/gpio21/direction
+echo "out" > /sys/class/gpio/gpio21/direction
+
+# Set up GPIO 6 output
+echo "6" > /sys/class/gpio/export
+echo "out" > /sys/class/gpio/gpio6/direction
 
 
-#GPIO for ky-033
+#GPIO for ky-024
 
 #Hunt_0
 # Set up GPIO 5  and set to input
 echo "5" > /sys/class/gpio/export
 echo "in" > /sys/class/gpio/gpio5/direction
-
-#Hunt_1
-# Set up GPIO 6 input
-echo "6" > /sys/class/gpio/export
-echo "in" > /sys/class/gpio/gpio6/direction
-
-
 
 #GPIO for hc-sr04
 
