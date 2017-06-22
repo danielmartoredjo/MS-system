@@ -1,6 +1,6 @@
 /*
  *  File: bluetooth_com.cpp
- *  version: 1.1
+ *  version: 1.2
  */
 
 #include <vector>
@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <std_msgs/Float32.h>
 #include <bluetooth_com/bluetooth_com.h>
+#include <string.h>
 
 // libraries for BlueZ
 #include <sys/socket.h>
@@ -91,15 +92,40 @@ int main(int argc, char **argv)
         if( bytes_read > 0 ) 
         {
             // read data
-            ROS_INFO("Received [%s]\n", buf);
+            //ROS_INFO("Received [%s]\n", buf);
             // do stuff to receive the data
+
+            char Sspeed[30];
+            float Fspeed;
+            char Sxacc[30];
+            float Fxacc;
+            char Syacc[30];
+            float Fyacc;
+            char Szacc[30];
+            float Fzacc;
+
+            strncpy(Sspeed, buf+1, 4);
+            Sspeed[4]= '\0';
+            Fspeed = strtof(Sspeed, NULL);
+
+            strncpy(Sxacc, buf+8, 4);
+            Sxacc[4]= '\0';
+            Fxacc = strtof(Sxacc, NULL);
+
+            strncpy(Syacc, buf+15, 4);
+            Syacc[4]= '\0';
+            Fyacc = strtof(Syacc, NULL);
+
+            strncpy(Szacc, buf+22, 4);
+            Szacc[4]= '\0';
+            Fzacc = strtof(Szacc, NULL);
 
 
             // do stuff with the data
-            master_speed_send.data++;
-            master_acce_x_send.data++;
-            master_acce_y_send.data++;
-            master_acce_z_send.data++;
+            master_speed_send.data = Fspeed;
+            master_acce_x_send.data = Fxacc;
+            master_acce_y_send.data = Fyacc;
+            master_acce_z_send.data = Fzacc;
 
             // Publish the values
             master_speed_pub.publish(master_speed_send);
